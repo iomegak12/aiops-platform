@@ -24,7 +24,6 @@ ENV/
 
 # ─── Runtime / simulated state ────────────────────────────────────────────
 # Injected fault state and service PIDs are generated at runtime.
-state/
 *.pids
 pids.txt
 

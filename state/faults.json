@@ -1,0 +1,6 @@
+{
+  "db": "healthy",
+  "cache": "healthy",
+  "queue": "healthy",
+  "payment": "baseline"
+}

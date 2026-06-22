@@ -10,6 +10,11 @@ and this project aims to follow [Semantic Versioning](https://semver.org/spec/v2
 ### Added
 - Project meta files: `.gitignore`, `TROUBLESHOOTING.md`, `CONTRIBUTING.md`, `CHANGELOG.md`.
 
+### Changed
+- Moved the root launcher/generator scripts (`start.ps1`, `start-container.ps1`, `load.ps1`) into
+  `scripts/`; updated all references (README, docs, `.dockerignore`, `azure/` script hint) and the
+  scripts' own root-path resolution accordingly. Run them as `pwsh scripts/start.ps1`.
+
 ## [0.1.0] — 2026-06-22
 
 The **Block A slice** of the platform — everything the foundation labs M0–M2 run.

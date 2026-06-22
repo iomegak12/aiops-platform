@@ -29,13 +29,13 @@ Get-NetTCPConnection -LocalPort 5000,5001,5002,8080 -State Listen |
 Stop-Process -Id <pid>
 ```
 
-### `start.ps1` won't run — execution policy
+### `scripts/start.ps1` won't run — execution policy
 PowerShell blocks unsigned scripts by default:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 # or invoke explicitly:
-pwsh -ExecutionPolicy Bypass -File start.ps1
+pwsh -ExecutionPolicy Bypass -File scripts/start.ps1
 ```
 
 ---
@@ -51,7 +51,7 @@ Get-NetTCPConnection -LocalPort 5000 -State Listen | Select-Object OwningProcess
 Stop-Process -Id <pid>
 ```
 
-Often it's a previous run that didn't shut down cleanly — try `pwsh start.ps1 -Stop` first.
+Often it's a previous run that didn't shut down cleanly — try `pwsh scripts/start.ps1 -Stop` first.
 
 ---
 
@@ -65,7 +65,7 @@ pip install -r requirements.txt
 ```
 
 ### `ModuleNotFoundError: No module named 'telemetry'` / `deps` / `services`
-The repo root isn't on `PYTHONPATH`. `start.ps1` sets this for you; if you run a service by hand,
+The repo root isn't on `PYTHONPATH`. `scripts/start.ps1` sets this for you; if you run a service by hand,
 set it first:
 
 ```powershell
@@ -113,7 +113,7 @@ Injected faults persist in `state/faults.json` and are shared across services. R
 ```powershell
 curl -X POST http://localhost:5000/admin/reset
 # or stop everything (also clears state):
-pwsh start.ps1 -Stop
+pwsh scripts/start.ps1 -Stop
 ```
 
 ### Checkouts fail ~10% of the time with no fault injected
