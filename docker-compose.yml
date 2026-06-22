@@ -1,0 +1,59 @@
+# Contoso Commerce Cloud — container topology (no version key; no healthchecks).
+# One image (contoso-platform) is built once; each service overrides the command.
+# Services reach each other by name on the default compose network. The simulated
+# fault state (state/faults.json) is shared across containers via a named volume.
+#
+# APPLICATIONINSIGHTS_CONNECTION_STRING is substituted from platform/.env if present
+# (Lab 1+); unset -> empty -> the whole estate runs in DEMO MODE.
+
+services:
+  payment:
+    build: .
+    image: contoso-platform
+    command: python services/payment_service.py
+    environment:
+      PORT: "5001"
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+    volumes:
+      - platform-state:/app/state
+
+  inventory:
+    image: contoso-platform
+    command: python services/inventory_service.py
+    environment:
+      PORT: "5002"
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+    volumes:
+      - platform-state:/app/state
+    depends_on:
+      - payment
+
+  order:
+    image: contoso-platform
+    command: python services/order_service.py
+    environment:
+      PORT: "5000"
+      PAYMENT_URL: http://payment:5001
+      INVENTORY_URL: http://inventory:5002
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "5000:5000"
+    volumes:
+      - platform-state:/app/state
+    depends_on:
+      - payment
+      - inventory
+
+  storefront:
+    image: contoso-platform
+    command: python services/storefront_service.py
+    environment:
+      PORT: "8080"
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - order
+
+volumes:
+  platform-state:

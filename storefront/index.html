@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Contoso Commerce Cloud — Storefront</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --line:#2a2f3a; --fg:#e6e9ef; --muted:#9aa4b2;
+          --ok:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#388bfd; }
+  :root[data-theme="light"] { --bg:#f6f8fa; --card:#ffffff; --line:#d0d7de; --fg:#1f2328; --muted:#656d76;
+          --ok:#1a7f37; --bad:#cf222e; --warn:#9a6700; --accent:#0969da; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--fg);
+         transition:background .2s ease, color .2s ease; }
+  header { padding:16px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:16px; }
+  header h1 { font-size:18px; margin:0; font-weight:600; }
+  header .tag { color:var(--muted); font-size:12px; }
+  header .api { margin-left:16px; font-size:12px; color:var(--muted); }
+  header input { background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:4px 8px; width:230px; }
+  main { display:grid; grid-template-columns:1fr 360px; gap:20px; padding:24px; max-width:1200px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; }
+  .catalog { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .product { border:1px solid var(--line); border-radius:8px; padding:12px; }
+  .product .name { font-weight:600; }
+  .product .price { color:var(--muted); margin:2px 0 10px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:8px 12px; cursor:pointer; font-weight:600; }
+  button.secondary { background:#2a2f3a; }
+  button.danger { background:var(--bad); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .feed { max-height:340px; overflow:auto; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  .feed div { padding:4px 0; border-bottom:1px solid var(--line); }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .muted { color:var(--muted); }
+  .stat { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); }
+  .stat b { font-variant-numeric:tabular-nums; }
+  .chaos label { display:block; font-size:12px; color:var(--muted); margin:10px 0 4px; }
+  select { width:100%; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:6px; }
+  .pill { font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); }
+  .pill.healthy { color:var(--ok); border-color:var(--ok); }
+  .pill.fault { color:var(--bad); border-color:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛒 Contoso Commerce Cloud</h1>
+  <span class="tag">Storefront · peak season</span>
+  <button id="themeBtn" class="secondary" style="margin-left:auto;">☀️ Light</button>
+  <span class="api">Order API <input id="apiBase" value="http://localhost:5000" /></span>
+</header>
+
+<main>
+  <div>
+    <div class="card">
+      <h2>Catalog</h2>
+      <div class="catalog" id="catalog"></div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Activity feed</h2>
+      <div class="row" style="margin-bottom:10px;">
+        <button id="autoBtn" class="secondary">▶ Auto-shop (organic traffic)</button>
+        <button id="clearBtn" class="secondary">Clear</button>
+        <span class="muted" id="counts"></span>
+      </div>
+      <div class="feed" id="feed"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Session stats</h2>
+      <div class="stat"><span>Checkouts</span><b id="sTotal">0</b></div>
+      <div class="stat"><span>Succeeded</span><b class="ok" id="sOk">0</b></div>
+      <div class="stat"><span>Failed</span><b class="bad" id="sFail">0</b></div>
+      <div class="stat"><span>Success rate</span><b id="sRate">—</b></div>
+      <div class="stat"><span>Refunds</span><b id="sRefunds">0</b></div>
+    </div>
+
+    <div class="card chaos" style="margin-top:20px;">
+      <h2>Chaos control <span class="muted">(instructor)</span></h2>
+      <p class="muted" style="margin-top:0;">Inject a fault into the estate and watch checkouts react. This writes shared fault state every service reads.</p>
+      <div id="faultPills" class="row" style="margin-bottom:6px;"></div>
+      <label>Database (db)</label>
+      <select data-target="db"><option value="healthy">healthy</option><option value="failover">failover (the cascade)</option></select>
+      <label>Cache</label>
+      <select data-target="cache"><option value="healthy">healthy</option><option value="eviction">eviction storm</option></select>
+      <label>Queue</label>
+      <select data-target="queue"><option value="healthy">healthy</option><option value="lag">lag</option></select>
+      <label>Payment</label>
+      <select data-target="payment"><option value="baseline">baseline (~10% fail)</option><option value="healthy">healthy (0%)</option><option value="outage">outage (mostly fail)</option></select>
+      <div class="row" style="margin-top:12px;">
+        <button id="resetBtn" class="danger">Reset all faults</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const api = () => $('#apiBase').value.replace(/\/+$/,'');
+const PRODUCTS = [
+  { sku:'SKU-001', name:'Contoso Wireless Mouse', price:24.99 },
+  { sku:'SKU-002', name:'Contoso Mechanical Keyboard', price:89.50 },
+  { sku:'SKU-003', name:'Contoso 4K Webcam', price:129.00 },
+  { sku:'SKU-004', name:'Contoso USB-C Hub', price:39.95 },
+];
+let total=0, ok=0, fail=0, refunds=0, auto=null;
+
+function log(msg, cls='') {
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  $('#feed').prepend(d);
+}
+function refreshStats() {
+  $('#sTotal').textContent = total; $('#sOk').textContent = ok; $('#sFail').textContent = fail;
+  $('#sRate').textContent = total ? Math.round(100*ok/total) + '%' : '—';
+  $('#sRefunds').textContent = refunds;
+  $('#counts').textContent = total ? `${ok}/${total} ok` : '';
+}
+
+async function checkout(p) {
+  total++; refreshStats();
+  try {
+    const r = await fetch(api()+'/order', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sku:p.sku, amount_usd:p.price })
+    });
+    if (r.ok) { const j = await r.json(); ok++; log(`✔ checkout ${p.name} → ${j.order_id} ($${p.price})`, 'ok'); }
+    else { const j = await r.json().catch(()=>({detail:r.status})); fail++; log(`✗ checkout ${p.name} FAILED → ${j.detail}`, 'bad'); }
+  } catch (e) { fail++; log(`✗ checkout ${p.name} ERROR → ${e.message}`, 'bad'); }
+  refreshStats();
+}
+async function refund(p) {
+  try {
+    await fetch(api()+'/refund', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sku:p.sku, amount_usd:p.price }) });
+    refunds++; refreshStats();
+    log(`↩ refund ${p.name}`, 'muted');
+  } catch (e) { log(`✗ refund ERROR → ${e.message}`, 'bad'); }
+}
+
+function renderCatalog() {
+  $('#catalog').innerHTML = '';
+  PRODUCTS.forEach(p => {
+    const el = document.createElement('div'); el.className = 'product';
+    el.innerHTML = `<div class="name">${p.name}</div><div class="price">$${p.price.toFixed(2)}</div>`;
+    const row = document.createElement('div'); row.className = 'row';
+    const buy = document.createElement('button'); buy.textContent = 'Checkout'; buy.onclick = () => checkout(p);
+    const ref = document.createElement('button'); ref.className='secondary'; ref.textContent='Refund'; ref.onclick = () => refund(p);
+    row.append(buy, ref); el.append(row); $('#catalog').append(el);
+  });
+}
+
+async function setFault(target, mode) {
+  try {
+    await fetch(api()+'/admin/fault', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ target, mode }) });
+    log(`⚡ CHAOS: ${target} → ${mode}`, mode.match(/healthy|baseline/) ? 'muted' : 'bad');
+    loadFaults();
+  } catch (e) { log(`✗ chaos ERROR → ${e.message}`, 'bad'); }
+}
+async function loadFaults() {
+  try {
+    const f = await (await fetch(api()+'/admin/faults')).json();
+    $('#faultPills').innerHTML = '';
+    Object.entries(f).forEach(([k,v]) => {
+      const healthy = ['healthy','baseline'].includes(v);
+      const p = document.createElement('span');
+      p.className = 'pill ' + (healthy ? 'healthy' : 'fault');
+      p.textContent = `${k}:${v}`;
+      $('#faultPills').append(p);
+    });
+  } catch { $('#faultPills').innerHTML = '<span class="muted">order API offline</span>'; }
+}
+
+$('#autoBtn').onclick = (e) => {
+  if (auto) { clearInterval(auto); auto=null; e.target.textContent='▶ Auto-shop (organic traffic)'; }
+  else { auto = setInterval(() => {
+           const p = PRODUCTS[Math.floor(Math.random()*PRODUCTS.length)];
+           if (Math.random() < 0.2) refund(p); else checkout(p);   // ~20% refunds, rest checkouts
+         }, 700);
+         e.target.textContent='⏸ Stop auto-shop'; }
+};
+$('#clearBtn').onclick = () => { $('#feed').innerHTML=''; };
+$('#resetBtn').onclick = () => setFault_all_reset();
+async function setFault_all_reset() {
+  try { await fetch(api()+'/admin/reset', {method:'POST'}); log('⚡ CHAOS: all faults reset', 'muted'); loadFaults();
+        document.querySelectorAll('select[data-target]').forEach(s => s.selectedIndex = 0); }
+  catch (e) { log(`✗ reset ERROR → ${e.message}`, 'bad'); }
+}
+document.querySelectorAll('select[data-target]').forEach(s =>
+  s.onchange = () => setFault(s.dataset.target, s.value));
+
+// Theme switch (persisted). Dark is the default; "light" sets data-theme on <html>.
+const themeBtn = $('#themeBtn');
+function applyTheme(t) {
+  if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  themeBtn.textContent = t === 'light' ? '🌙 Dark' : '☀️ Light';
+  localStorage.setItem('sf-theme', t);
+}
+themeBtn.onclick = () => applyTheme(localStorage.getItem('sf-theme') === 'light' ? 'dark' : 'light');
+applyTheme(localStorage.getItem('sf-theme') || 'dark');
+
+renderCatalog(); refreshStats(); loadFaults(); setInterval(loadFaults, 4000);
+</script>
+</body>
+</html>

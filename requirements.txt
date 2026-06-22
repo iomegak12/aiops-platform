@@ -1,0 +1,25 @@
+fastapi
+uvicorn[standard]
+httpx
+azure-monitor-opentelemetry
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-httpx
+python-dotenv
+
+# Lab 4 — Alert-Storm Clustering (ML). Read the storm from the workspace, embed, cluster, score.
+azure-monitor-query
+azure-identity
+openai
+scikit-learn
+hdbscan
+numpy
+pandas
+
+# Lab 4 stretch — UMAP 2-D projection of the clustered storm (optional).
+umap-learn
+matplotlib
+
+# Lab 4 Step 7 (optional cluster summary) uses the openai SDK above — no extra package.
+# NOTE: the Microsoft Agent Framework (agent-framework) is intentionally NOT pinned here — its
+# [all] extras currently conflict on azure-search-documents and lack Python 3.14 wheels. It gets a
+# proper, version-pinned setup in Block C (the agentic block), which is where MAF actually lives.

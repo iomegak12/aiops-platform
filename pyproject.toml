@@ -1,0 +1,61 @@
+[project]
+name = "aiops-agentic-labs"
+version = "0.1.0"
+description = "AIOps Engineering — modernized agentic labs (Module 3 & 4): event correlation, anomaly detection, topology-aware RCA on Azure AI Foundry + Microsoft Agent Framework + MCP."
+requires-python = ">=3.12,<3.13"   # pin to Python 3.12 (Block C / MAF wheels lag on 3.13+); NOT the system's latest
+license = { text = "MIT" }
+authors = [
+    { name = "Ramkumar J Dhamodharan", email = "jd.ramkumar@gmail.com" },
+]
+maintainers = [
+    { name = "Ramkumar J Dhamodharan", email = "jd.ramkumar@gmail.com" },
+]
+keywords = ["aiops", "agentic", "azure-ai-foundry", "microsoft-agent-framework", "mcp", "rca", "event-correlation"]
+
+# Packages the agentic-labs artifacts actually import:
+#   lab_console/console.py   -> fastapi, uvicorn, pydantic, python-dotenv, azure-monitor-opentelemetry
+#   M3-2/correlators.py      -> python-dotenv, pandas, numpy, azure-monitor-query, azure-identity, azure-ai-inference
+#   M3-2/correlation_mcp.py  -> mcp (FastMCP, streamable HTTP) + correlators
+#   M3-2/correlation_agent.ipynb -> pydantic, agent-framework (+ azure, devui), run via ipykernel
+dependencies = [
+    # Data-generation UI (Lab Console)
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "azure-monitor-opentelemetry>=1.8.8",
+    # Telemetry read-back + correlation (shared bounds with the root project)
+    "azure-monitor-query>=2.0.0",
+    "azure-identity>=1.25.3",
+    "azure-ai-inference>=1.0.0b1",   # EmbeddingsClient for the ML correlator
+    "numpy>=2.4.6",
+    "pandas>=3.0.3",
+    "scikit-learn>=1.9.0",
+    "hdbscan>=0.8.40",                 # M3.3 ML noise reduction (density clustering, metric=precomputed)
+    "azure-search-documents>=11.5.0",  # M3.3 operator-judgment knowledge source (read/write the lab-judgments index); reused by M4.4
+    "azure-eventhub>=5.11.0",          # M3.5 streaming ingest - console publishes the storm to Event Hubs (Stream Analytics dedups it)
+    "azure-ai-evaluation>=1.0.0",      # M4.3/M4.4 evaluators (groundedness + task-adherence), run locally with the chat model as judge
+    # Agentic stack — the Block C / Module 3-4 additions the root project defers to here
+    "mcp>=1.2.0",                       # MCP server SDK (FastMCP, streamable-http transport)
+    "agent-framework>=1.9.0",           # Microsoft Agent Framework — ChatAgent, MCP tools, structured output (its [all] tree needs prereleases)
+    "agent-framework-devui>=1.0.0b1",   # DevUI (1.0 beta) — inspect agent reasoning + tool calls
+    # Notebook runtime (the agent build is a .ipynb)
+    "ipykernel>=6.29",
+    "jupyterlab>=4.2",
+]
+
+# NOTE: later labs add their own packages, kept out of the base to avoid resolver conflicts:
+#   M4 Foundry eval   -> azure-ai-evaluation
+#   M3.5 streaming    -> azure-eventhub
+#   M4.1 ML endpoints -> azure-ai-ml, requests
+#   viz (optional)    -> umap-learn, matplotlib
+# Microsoft Agent Framework SDK names/versions move fast — adjust the three agent-framework / mcp
+# pins above to the line you install if resolution fails.
+
+[project.urls]
+Homepage = "https://www.redivac.co.in"
+Author = "https://www.redivac.co.in"
+
+[tool.uv]
+package = false        # application project: uv builds the venv + installs deps, does not package this dir
+prerelease = "allow"   # Microsoft Agent Framework's [all] tree pulls pre-release sub-packages (azure-search-documents, azure-ai-agents, devui)

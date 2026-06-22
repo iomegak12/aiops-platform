@@ -1,0 +1,55 @@
+# ─── Python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ─── Virtual environments ─────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Secrets & local config ───────────────────────────────────────────────
+# Real connection strings live here (Lab 1 writes the App Insights string).
+# .env.example is committed as the template; .env never is.
+.env
+.env.*
+!.env.example
+
+# ─── Runtime / simulated state ────────────────────────────────────────────
+# Injected fault state and service PIDs are generated at runtime.
+state/
+*.pids
+pids.txt
+
+# ─── Azure provisioning state ─────────────────────────────────────────────
+# Written by azure/provision-observability.ps1; subscription/resource specific.
+azure/.provision-state.json
+
+# ─── Jupyter (Module 3 & 4 agentic labs) ──────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── ML / lab artifacts ───────────────────────────────────────────────────
+*.joblib
+*.pkl
+*.npy
+*.npz
+umap_*.png
+
+# ─── Editors / OS ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────────────────────────────
+*.log
+logs/

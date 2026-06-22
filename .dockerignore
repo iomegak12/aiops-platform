@@ -1,0 +1,16 @@
+# Keep the image small and clean.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+state/
+*.md
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
+scripts/
